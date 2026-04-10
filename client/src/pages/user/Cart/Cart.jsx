@@ -1,0 +1,88 @@
+/* eslint-disable no-unused-vars */
+import CartItem from "./CartItem";
+import EmptyCart from "./EmptyCart";
+import { useCart } from "../../../context/cart";
+import SaveForLater from "./SaveForLater";
+import ScrollToTopOnRouteChange from "./../../../utils/ScrollToTopOnRouteChange";
+import SeoData from "../../../SEO/SeoData";
+import PriceCard from "./PriceCard";
+import { useAuth } from "../../../context/auth";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+
+const Cart = () => {
+    const { auth } = useAuth();
+    const navigate = useNavigate();
+    const [cartItems, setCartItems, , , saveLaterItems] = useCart();
+
+    const placeOrderHandler = () => {
+        navigate("/shipping");
+    };
+
+    return (
+        <>
+            <ScrollToTopOnRouteChange />
+            <SeoData title="Shopping Cart | Flipkart.com" />
+            <main className="w-full pt-5">
+                {/* <!-- row --> */}
+                <div className="flex flex-col sm:flex-row gap-3.5 w-full sm:w-11/12 mt-0 sm:mt-4 m-auto ">
+                    {/* <!-- cart column --> */}
+                    <div className="flex-1">
+                        {/* <!-- cart items container --> */}
+                        <div className="flex flex-col shadow bg-white">
+                            <span className="font-medium text-lg px-2 sm:px-8 py-4 border-b">
+                                My Cart ({cartItems?.length})
+                            </span>
+                            {cartItems?.length === 0 ? (
+                                <EmptyCart />
+                            ) : (
+                                cartItems?.map((item, i) => (
+                                    <CartItem
+                                        product={item}
+                                        inCart={true}
+                                        key={i}
+                                    />
+                                ))
+                            )}
+                            {/* <!-- place order btn --> */}
+                            <div className="flex justify-end items-center sticky bottom-0 left-0 bg-white">
+                                <button
+                                    onClick={placeOrderHandler}
+                                    disabled={
+                                        cartItems.length < 1 ? true : false
+                                    }
+                                    className={`${
+                                        cartItems.length < 1
+                                            ? "bg-gray-400 cursor-not-allowed"
+                                            : "bg-gradient-to-r from-orange-500 to-pink-500 hover:shadow-lg"
+                                    } w-full sm:w-1/3 mx-2 sm:mx-6 my-4 py-4 font-medium text-white shadow rounded-sm `}
+                                >
+                                    PLACE ORDER
+                                </button>
+                            </div>
+                            {/* <!-- place order btn --> */}
+                        </div>
+                        {/* <!-- cart items container --> */}
+
+                        {/* <!-- saved for later items container --> */}
+                        <div className="flex flex-col mt-5 shadow bg-white mb-8">
+                            <span className="font-medium text-lg px-2 sm:px-8 py-4 border-b">
+                                Saved For Later ({saveLaterItems?.length})
+                            </span>
+                            {saveLaterItems?.map((item, i) => (
+                                <SaveForLater product={item} key={i} />
+                            ))}
+                        </div>
+                        {/* <!-- saved for later container --> */}
+                    </div>
+                    {/* <!-- cart column --> */}
+
+                    <PriceCard cartItems={cartItems} />
+                </div>
+                {/* <!-- row --> */}
+            </main>
+        </>
+    );
+};
+
+export default Cart;
