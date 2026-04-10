@@ -36,9 +36,6 @@ router.post("/banners/add", isAdmin, addBanner);
 router.patch("/banners/toggle/:id", isAdmin, toggleBanner);
 router.delete("/banners/delete/:id", isAdmin, deleteBanner);
 
-//find product details from product id
-router.get("/:id", findProduct);
-
 //update product details from product id
 router.patch("/update/:id", isAdmin, updateProduct);
 
@@ -47,5 +44,8 @@ router.get("/search/:keyword", searchProductController);
 
 // add/update product review
 router.post("/review", requireSignIn, addReview);
+
+//find product details from product id (must be last)
+router.get("/:id", findProduct);
 
 export default router;
