@@ -1,12 +1,14 @@
 import { BsSearch } from "react-icons/bs";
 import debounce from "lodash.debounce";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const SearchBar = () => {
     const [query, setQuery] = useState("");
     const [results, setResults] = useState([]);
     const [open, setOpen] = useState(false);
+    const navigate = useNavigate();
 
     const handleSearch = async (query) => {
         try {
@@ -86,6 +88,7 @@ const SearchBar = () => {
                             <li key={product?._id}>
                                 <a
                                     href={`/product/${product._id}`}
+                                    onClick={(e) => { e.preventDefault(); setOpen(false); navigate(`/product/${product._id}`); }}
                                     className="px-5 py-4 h-[50px] hover:bg-[#f0f5ff] flex gap-5"
                                 >
                                     <img
