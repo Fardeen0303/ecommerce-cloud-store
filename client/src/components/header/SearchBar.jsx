@@ -87,9 +87,8 @@ const SearchBar = () => {
                         {results.map((product) => (
                             <li key={product?._id}>
                                 <a
-                                    href={`/product/${product._id}`}
-                                    onMouseDown={(e) => { e.preventDefault(); setOpen(false); navigate(`/product/${product._id}`); }}
-                                    className="px-5 py-4 h-[50px] hover:bg-[#f0f5ff] flex gap-5"
+                                    onMouseDown={(e) => { e.preventDefault(); setOpen(false); setQuery(""); setResults([]); navigate(`/product/${product._id}`); }}
+                                    className="px-5 py-4 h-[50px] hover:bg-[#f0f5ff] flex gap-5 cursor-pointer"
                                 >
                                     <img
                                         src={product?.images[0].url}
