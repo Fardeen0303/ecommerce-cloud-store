@@ -2,11 +2,9 @@ pipeline {
     agent any
 
     environment {
-        AWS_REGION      = 'ap-south-1'
-        AWS_ACCOUNT_ID  = credentials('AWS-Account-ID')
-        ECR_REGISTRY    = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
-        PROJECT         = 'ecommerce'
-        IMAGE_TAG       = "${BUILD_NUMBER}"
+        AWS_REGION     = 'ap-south-1'
+        PROJECT        = 'ecommerce'
+        IMAGE_TAG      = "${BUILD_NUMBER}"
     }
 
     stages {
@@ -18,66 +16,47 @@ pipeline {
 
         stage('Login to ECR') {
             steps {
-                sh '''
-                    aws ecr get-login-password --region $AWS_REGION | \
-                    docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
-                '''
+                withCredentials([string(credentialsId: 'AWS-Account-ID', variable: 'AWS_ACCOUNT_ID')]) {
+                    sh '''
+                        aws ecr get-login-password --region $AWS_REGION | \
+                        docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+                    '''
+                }
             }
         }
 
         stage('Build Images') {
-            parallel {
-                stage('api-gateway') {
-                    steps {
-                        sh "docker build -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$PROJECT/api-gateway:$IMAGE_TAG ./services/api-gateway"
-                    }
-                }
-                stage('auth-service') {
-                    steps {
-                        sh "docker build -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$PROJECT/auth-service:$IMAGE_TAG ./services/auth-service"
-                    }
-                }
-                stage('product-service') {
-                    steps {
-                        sh "docker build -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$PROJECT/product-service:$IMAGE_TAG ./services/product-service"
-                    }
-                }
-                stage('order-service') {
-                    steps {
-                        sh "docker build -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$PROJECT/order-service:$IMAGE_TAG ./services/order-service"
-                    }
+            steps {
+                withCredentials([string(credentialsId: 'AWS-Account-ID', variable: 'AWS_ACCOUNT_ID')]) {
+                    sh '''
+                        docker build -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$PROJECT/api-gateway:$IMAGE_TAG ./services/api-gateway
+                        docker build -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$PROJECT/auth-service:$IMAGE_TAG ./services/auth-service
+                        docker build -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$PROJECT/product-service:$IMAGE_TAG ./services/product-service
+                        docker build -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$PROJECT/order-service:$IMAGE_TAG ./services/order-service
+                    '''
                 }
             }
         }
 
         stage('Push Images to ECR') {
-            parallel {
-                stage('push api-gateway') {
-                    steps {
-                        sh "docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$PROJECT/api-gateway:$IMAGE_TAG"
-                    }
-                }
-                stage('push auth-service') {
-                    steps {
-                        sh "docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$PROJECT/auth-service:$IMAGE_TAG"
-                    }
-                }
-                stage('push product-service') {
-                    steps {
-                        sh "docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$PROJECT/product-service:$IMAGE_TAG"
-                    }
-                }
-                stage('push order-service') {
-                    steps {
-                        sh "docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$PROJECT/order-service:$IMAGE_TAG"
-                    }
+            steps {
+                withCredentials([string(credentialsId: 'AWS-Account-ID', variable: 'AWS_ACCOUNT_ID')]) {
+                    sh '''
+                        docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$PROJECT/api-gateway:$IMAGE_TAG
+                        docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$PROJECT/auth-service:$IMAGE_TAG
+                        docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$PROJECT/product-service:$IMAGE_TAG
+                        docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$PROJECT/order-service:$IMAGE_TAG
+                    '''
                 }
             }
         }
 
         stage('Update GitOps Repo') {
             steps {
-                withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
+                withCredentials([
+                    string(credentialsId: 'AWS-Account-ID', variable: 'AWS_ACCOUNT_ID'),
+                    string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')
+                ]) {
                     sh '''
                         rm -rf ecommerce-cloud-store-gitops
                         git clone https://$GITHUB_TOKEN@github.com/Fardeen0303/ecommerce-cloud-store-gitops.git
