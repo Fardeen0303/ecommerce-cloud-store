@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         AWS_REGION      = 'ap-south-1'
-        AWS_ACCOUNT_ID  = credentials('AWS_ACCOUNT_ID')
+        AWS_ACCOUNT_ID  = credentials('AWS-Account-ID')
         ECR_REGISTRY    = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
         PROJECT         = 'ecommerce'
         IMAGE_TAG       = "${BUILD_NUMBER}"
